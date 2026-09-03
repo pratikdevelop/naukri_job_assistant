@@ -1,0 +1,53 @@
+keywords:
+  primary:
+    - MERN Developer
+    - Node.js Developer
+    - Full Stack Developer
+    - React.js Developer
+    - Backend Developer
+    - JavaScript Developer
+  secondary:
+    - AI Engineer
+    - Generative AI Developer
+    - LLM Engineer
+    - Python Developer
+    - Angular Developer
+locations:
+  - Indore
+  - Ujjain
+  - Remote
+  - Pune
+  - Bangalore
+  - Hyderabad
+  - Gurgaon
+  - Delhi NCR
+experience:
+  min: 1
+  max: 4
+scoring:
+  title:
+    mern: 25
+    node: 22
+    react: 18
+    full_stack: 20
+    backend: 16
+    javascript: 14
+    ai: 12
+    python: 10
+    angular: 8
+  skills:
+    typescript: 8
+    express: 8
+    mongodb: 8
+    postgresql: 6
+    nextjs: 7
+    aws: 5
+    docker: 5
+    kafka: 5
+    redis: 5
+    django: 4
+    fastapi: 4
+  penalties:
+    senior: -20
+    lead: -25
+    manager: -30
