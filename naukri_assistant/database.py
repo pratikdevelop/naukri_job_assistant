@@ -32,6 +32,7 @@ class JobDB:
             )
             """
         )
+        self.ensure_status_column(self.conn)
 
         self.conn.commit()
 
@@ -208,3 +209,19 @@ class JobDB:
             "total": total,
             **{row["status"]: row["n"] for row in rows},
         }
+
+    @staticmethod
+    def ensure_status_column(conn):
+        columns = conn.execute(
+            "PRAGMA table_info(jobs)"
+        ).fetchall()
+
+        column_names = [column[1] for column in columns]
+
+        if "status" not in column_names:
+            conn.execute(
+                """
+                ALTER TABLE jobs
+                ADD COLUMN status TEXT DEFAULT 'NEW'
+                """
+            )
