@@ -231,14 +231,27 @@ for job in filtered_jobs:
     col1, col2 = st.columns([5, 1])
 
     with col1:
-        st.markdown(f"### 💼 {job['job_title']}")
+        status = job["status"] or "NEW"
+
+        status_icons = {
+            "NEW": "🆕",
+            "APPLIED": "🚀",
+            "SKIPPED": "⏭️",
+            "FAILED": "❌",
+        }
+
+        st.markdown(
+            f"### 💼 {job['job_title']} "
+            f"{status_icons.get(status, '🆕')}"
+        )
 
         st.write(
             f"🏢 **Company:** {job['company']}  \n"
             f"📍 **Location:** {job['location'] or 'Not specified'}  \n"
             f"⭐ **Match Score:** {job['match_score']}  \n"
             f"💼 **Experience:** {job['experience'] or 'Not specified'}  \n"
-            f"💰 **Salary:** {job['salary'] or 'Not specified'}"
+            f"💰 **Salary:** {job['salary'] or 'Not specified'}  \n"
+            f"📌 **Status:** {status}"
         )
 
         if job["skills"]:
@@ -253,9 +266,28 @@ for job in filtered_jobs:
                 job["job_url"],
                 use_container_width=True,
             )
-        else:
-            st.button(
-                "❌ No URL",
-                disabled=True,
-                use_container_width=True,
-            )
+
+        if st.button(
+            "🚀 Mark Applied",
+            key=f"applied_{job['job_id']}",
+            use_container_width=True,
+        ):
+            job_db.set_status(job["job_id"], "APPLIED")
+            st.success("Marked as Applied")
+            st.rerun()
+
+        if st.button(
+            "⏭️ Skip",
+            key=f"skip_{job['job_id']}",
+            use_container_width=True,
+        ):
+            job_db.set_status(job["job_id"], "SKIPPED")
+            st.rerun()
+
+        if st.button(
+            "❌ Failed",
+            key=f"failed_{job['job_id']}",
+            use_container_width=True,
+        ):
+            job_db.set_status(job["job_id"], "FAILED")
+            st.rerun()
