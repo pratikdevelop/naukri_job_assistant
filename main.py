@@ -93,5 +93,94 @@ def main():
         write_dashboard(db, DATA / "dashboard.html")
         print(DATA / "dashboard.html")
 
+
+def refresh_jobs():
+    """
+    Scan Naukri for the configured keywords/locations
+    and add/update jobs in SQLite.
+
+    Returns:
+        dict: refresh statistics
+    """
+
+    from naukri_assistant.browser import NaukriBrowser
+    from naukri_assistant.database import JobDB
+    from naukri_assistant.config import load_config
+    from naukri_assistant.scorer import score_job
+
+    cfg = load_config()
+
+    db = JobDB(cfg["db_path"])
+    browser = NaukriBrowser(cfg)
+
+    total_found = 0
+    new_jobs = 0
+    updated_jobs = 0
+
+    try:
+        keywords = cfg["keywords"]
+        locations = cfg["locations"]
+
+        experience_min = cfg.get("experience_min", 1)
+        experience_max = cfg.get("experience_max", 4)
+        pages = cfg.get("pages_per_keyword", 1)
+
+        print("\n🔄 Refreshing latest Naukri jobs...")
+        print("=" * 60)
+
+        for keyword in keywords:
+            for location in locations:
+
+                print(
+                    f"\n🔎 Searching: {keyword} | {location}"
+                )
+
+                jobs = browser.search_jobs(
+                    keyword=keyword,
+                    location=location,
+                    emin=experience_min,
+                    emax=experience_max,
+                    pages=pages,
+                )
+
+                total_found += len(jobs)
+
+                print(f"   Found: {len(jobs)} jobs")
+
+                for job in jobs:
+
+                    # Calculate match score
+                    scored = score_job(job)
+
+                    if isinstance(scored, tuple):
+                        job["match_score"] = scored[0]
+                        job["match_reasons"] = scored[1]
+                    else:
+                        job["match_score"] = scored
+
+                    # Insert/update database
+                    inserted = db.upsert_job(job)
+
+                    if inserted:
+                        new_jobs += 1
+                    else:
+                        updated_jobs += 1
+
+        print("\n" + "=" * 60)
+        print("✅ Refresh completed")
+        print(f"Jobs found:   {total_found}")
+        print(f"New jobs:     {new_jobs}")
+        print(f"Updated jobs: {updated_jobs}")
+        print("=" * 60)
+
+        return {
+            "total_found": total_found,
+            "new_jobs": new_jobs,
+            "updated_jobs": updated_jobs,
+        }
+
+    finally:
+        browser.close()
+        db.conn.close()
 if __name__ == "__main__":
     main()
