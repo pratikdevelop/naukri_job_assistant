@@ -76,7 +76,10 @@ all_locations = list(
 # DATABASE
 # ============================================================
 
-def load_jobs():
+def load_jobs(sort_by="Latest Jobs"):
+    """
+    Load jobs from SQLite according to the selected sorting mode.
+    """
 
     if not DB_PATH.exists():
         return []
@@ -87,20 +90,47 @@ def load_jobs():
 
     conn.row_factory = sqlite3.Row
 
-    rows = conn.execute(
+    if sort_by == "Latest Jobs":
+
+        order_by = """
+            first_seen DESC,
+            match_score DESC
         """
-        SELECT *
-        FROM jobs
-        ORDER BY
+
+    elif sort_by == "Best Match":
+
+        order_by = """
             match_score DESC,
             first_seen DESC
         """
+
+    elif sort_by == "Recently Seen":
+
+        order_by = """
+            last_seen DESC,
+            match_score DESC
+        """
+
+    else:
+
+        order_by = """
+            first_seen DESC,
+            match_score DESC
+        """
+
+    query = f"""
+        SELECT *
+        FROM jobs
+        ORDER BY {order_by}
+    """
+
+    rows = conn.execute(
+        query
     ).fetchall()
 
     conn.close()
 
     return rows
-
 # ============================================================
 # KEYWORD RELEVANCE
 # ============================================================
